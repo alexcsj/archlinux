@@ -167,12 +167,15 @@ echo ""
 log_info "執行安裝腳本..."
 echo ""
 
+# 在一行命令模式下自動添加 --yes 標誌
+INSTALL_ARGS="--yes"
+
 if [ "$HARDWARE" = "auto-detect" ]; then
     chmod +x scripts/install.sh
-    ./scripts/install.sh --auto-detect
+    ./scripts/install.sh $INSTALL_ARGS --auto-detect
 else
     chmod +x scripts/install.sh
-    ./scripts/install.sh --hardware "$HARDWARE"
+    ./scripts/install.sh $INSTALL_ARGS --hardware "$HARDWARE"
 fi
 
 log_success "安裝完成！"

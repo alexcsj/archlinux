@@ -22,6 +22,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 HARDWARE="generic"
 VERBOSE=false
+AUTO_YES=false
 
 # 日誌函數
 log_info() {
@@ -308,6 +309,10 @@ main() {
                 VERBOSE=true
                 shift
                 ;;
+            --yes|-y)
+                AUTO_YES=true
+                shift
+                ;;
             --help)
                 show_help
                 ;;
@@ -323,11 +328,17 @@ main() {
 
     echo "選定硬體配置：$HARDWARE"
     echo ""
-    read -p "繼續安裝？(y/N) " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        log_info "安裝已取消"
-        exit 0
+
+    # 確認安裝
+    if [ "$AUTO_YES" = true ]; then
+        log_info "自動確認，開始安裝..."
+    else
+        read -p "繼續安裝？(y/N) " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            log_info "安裝已取消"
+            exit 0
+        fi
     fi
 
     # 執行安裝
