@@ -115,8 +115,6 @@ done
 
 # 自動檢測硬體
 detect_hardware() {
-    log_info "檢測硬體配置..."
-
     # 檢查是否為聯想 Duet 2022
     if dmidecode -t system 2>/dev/null | grep -iq "duet"; then
         echo "duet-2022"
@@ -156,6 +154,7 @@ if [ -z "$HARDWARE" ]; then
         esac
     else
         # 一行命令模式：自動檢測，無需用戶交互
+        log_info "檢測硬體配置..."
         HARDWARE=$(detect_hardware)
     fi
 fi
