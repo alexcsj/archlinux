@@ -115,13 +115,19 @@ done
 
 # 自動檢測硬體
 detect_hardware() {
-    # 檢查是否為聯想 Duet 2022
+    # 檢查是否為聯想 Duet 2022 (型號代碼: 82TQ)
+    if cat /sys/class/dmi/id/product_name 2>/dev/null | grep -iq "82TQ"; then
+        echo "duet-2022"
+        return
+    fi
+
     if dmidecode -t system 2>/dev/null | grep -iq "duet"; then
         echo "duet-2022"
         return
     fi
 
-    if lsb_release -d 2>/dev/null | grep -iq "lenovo"; then
+    # 檢查型號代碼
+    if cat /sys/class/dmi/id/product_version 2>/dev/null | grep -iq "82TQ"; then
         echo "duet-2022"
         return
     fi

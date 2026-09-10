@@ -83,9 +83,19 @@ EOF
 detect_hardware() {
     log_info "正在檢測硬體配置..."
 
-    # 檢查是否為聯想 Duet 2022
-    if dmidecode -t system 2>/dev/null | grep -q "Duet" || \
-       lsb_release -d 2>/dev/null | grep -q "Lenovo"; then
+    # 檢查是否為聯想 Duet 2022 (型號代碼: 82TQ)
+    if cat /sys/class/dmi/id/product_name 2>/dev/null | grep -q "82TQ"; then
+        echo "duet-2022"
+        return
+    fi
+
+    if dmidecode -t system 2>/dev/null | grep -q "Duet\|82TQ"; then
+        echo "duet-2022"
+        return
+    fi
+
+    # 檢查型號版本代碼
+    if cat /sys/class/dmi/id/product_version 2>/dev/null | grep -q "82TQ"; then
         echo "duet-2022"
         return
     fi
