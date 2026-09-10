@@ -86,6 +86,7 @@ cd "$INSTALL_DIR"
 # 解析命令行參數
 HARDWARE=""
 INTERACTIVE=false
+AUTO_ONLY=false
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -95,6 +96,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --interactive)
             INTERACTIVE=true
+            shift
+            ;;
+        --auto-only)
+            AUTO_ONLY=true
             shift
             ;;
         --help)
@@ -108,27 +113,56 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# 如果未指定硬體，詢問用戶
-if [ -z "$HARDWARE" ] && [ "$INTERACTIVE" = false ]; then
-    echo -e "${YELLOW}硬體配置選擇：${NC}"
-    echo ""
-    echo "  1) 自動檢測"
-    echo "  2) 通用 x86_64"
-    echo "  3) 聯想小新 Duet 2022"
-    echo ""
-    read -p "請輸入選擇 (1-3) [預設 1]: " choice
-    choice=${choice:-1}
+# 自動檢測硬體
+detect_hardware() {
+    log_info "檢測硬體配置..."
 
-    case $choice in
-        1) HARDWARE="auto-detect" ;;
-        2) HARDWARE="generic" ;;
-        3) HARDWARE="duet-2022" ;;
-        *)
-            log_error "無效選擇"
-            exit 1
-            ;;
-    esac
+    # 檢查是否為聯想 Duet 2022
+    if dmidecode -t system 2>/dev/null | grep -iq "duet"; then
+        echo "duet-2022"
+        return
+    fi
+
+    if lsb_release -d 2>/dev/null | grep -iq "lenovo"; then
+        echo "duet-2022"
+        return
+    fi
+
+    # 預設為通用配置
+    echo "generic"
+}
+
+# 如果未指定硬體
+if [ -z "$HARDWARE" ]; then
+    if [ "$INTERACTIVE" = true ]; then
+        # 互動式模式：顯示菜單
+        echo -e "${YELLOW}硬體配置選擇：${NC}"
+        echo ""
+        echo "  1) 自動檢測"
+        echo "  2) 通用 x86_64"
+        echo "  3) 聯想小新 Duet 2022"
+        echo ""
+        read -p "請輸入選擇 (1-3) [預設 1]: " choice
+        choice=${choice:-1}
+
+        case $choice in
+            1) HARDWARE=$(detect_hardware) ;;
+            2) HARDWARE="generic" ;;
+            3) HARDWARE="duet-2022" ;;
+            *)
+                log_error "無效選擇"
+                exit 1
+                ;;
+        esac
+    else
+        # 一行命令模式：自動檢測，無需用戶交互
+        HARDWARE=$(detect_hardware)
+    fi
 fi
+
+# 顯示檢測結果
+log_success "硬體配置：$HARDWARE"
+echo ""
 
 # 執行安裝
 log_info "執行安裝腳本..."
